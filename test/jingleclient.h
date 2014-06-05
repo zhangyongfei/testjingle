@@ -5,7 +5,13 @@
 #include "xmpp/xmppclient.h"
 #include "xmpp/rostermodule.h"
 #include "test/console.h"
+#include "xmpp/chattask.h"
 
+
+namespace buzz
+{
+class PingTask;
+}
 
 class JingleClient : public sigslot::has_slots<>,
 	                 public buzz::XmppRosterHandler,
@@ -21,6 +27,14 @@ public:
 
 protected:
 	void InitPresence();
+
+	void StartXmppPing();
+
+	void OnPingTimeout();
+
+	void SendChat(const buzz::Jid& to, const std::string& msg);
+
+	void RecvChat(const buzz::Jid& from, const std::string& msg);
 
 	void SubscriptionRequest(buzz::XmppRosterModule* roster,
 		const buzz::Jid& requesting_jid,
@@ -51,6 +65,8 @@ protected:
 private:
 	buzz::XmppClient *xmpp_client_;
 	buzz::XmppRosterModule *roster_module_;
+	talk_base::scoped_ptr<buzz::PingTask> ping_task_;
+	talk_base::scoped_ptr<buzz::ChatTask> chat_task_;
 };
 
 #endif

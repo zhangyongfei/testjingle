@@ -25,26 +25,74 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _PRESENCEOUTTASK_H_
-#define _PRESENCEOUTTASK_H_
-
-#include "xmpp/xmppengine.h"
-#include "xmpp/xmpptask.h"
-#include "xmpp/presencestatus.h"
+#include <time.h>
+#include <sstream>
+#include "base/stringencode.h"
+#include "xmpp/constants.h"
+#include "xmpp/chattask.h"
+#include "xmpp/xmppclient.h"
 
 namespace buzz {
 
-class MessageOutTask : public XmppTask {
-public:
-  explicit MessageOutTask(XmppTaskParentInterface* parent)
-      : XmppTask(parent) {}
-  virtual ~MessageOutTask() {}
-
-  XmppReturnStatus Send(const PresenceStatus & s);
-
-  virtual int ProcessStart();
-};
+ChatTask::ChatTask(XmppTaskParentInterface* parent)
+	: XmppTask(parent, XmppEngine::HL_TYPE)
+{
 
 }
 
-#endif
+ChatTask::~ChatTask() {
+	Stop();
+}
+
+XmppReturnStatus ChatTask::Send(const Jid& to, const std::string& message) {
+  if (GetState() != STATE_INIT && GetState() != STATE_START)
+    return XMPP_RETURN_BADSTATE;
+
+  buzz::XmlElement* stanza = new buzz::XmlElement(buzz::QN_MESSAGE);
+  stanza->AddAttr(buzz::QN_TO, to.Str());
+  stanza->AddAttr(buzz::QN_ID, talk_base::CreateRandomString(16));
+  stanza->AddAttr(buzz::QN_TYPE, "chat");
+  buzz::XmlElement* body = new buzz::XmlElement(buzz::QN_BODY);
+  body->SetBodyText(message);
+  stanza->AddElement(body);
+
+  SendStanza(stanza);
+  delete stanza;
+
+  return XMPP_RETURN_OK;
+}
+
+bool ChatTask::HandleStanza(const XmlElement* stanza)
+{
+	// Verify that this is a presence stanze
+	if (stanza->Name() != QN_MESSAGE) 
+	{
+		return false; // not sure if this ever happens.
+	}
+
+	const XmlElement *body = stanza->FirstNamed(QN_BODY);
+
+	if (body == NULL)
+	{
+		return false;
+	}
+	
+	const std::string from = stanza->Attr(QN_FROM);
+	const std::string msg = body->BodyText();
+
+	MessageRecv(Jid(from), msg);
+
+	return true;
+}
+
+int ChatTask::ProcessStart()
+{
+	const XmlElement * stanza = NextStanza();
+	if (stanza == NULL)
+		return STATE_BLOCKED;
+
+
+	return STATE_START;
+}
+
+}

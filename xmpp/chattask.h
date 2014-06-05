@@ -25,35 +25,34 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <time.h>
-#include <sstream>
-#include "base/stringencode.h"
-#include "xmpp/constants.h"
-#include "xmpp/messageouttask.h"
-#include "xmpp/xmppclient.h"
+#ifndef _CHATTASK_H_
+#define _CHATTASK_H_
+
+#include "xmpp/xmppengine.h"
+#include "xmpp/xmpptask.h"
+#include "xmpp/presencestatus.h"
 
 namespace buzz {
 
-XmppReturnStatus
-MessageOutTask::Send(const PresenceStatus & s) {
-  if (GetState() != STATE_INIT && GetState() != STATE_START)
-    return XMPP_RETURN_BADSTATE;
+class ChatTask : public XmppTask {
+public:
+  explicit ChatTask(XmppTaskParentInterface* parent);
+
+  virtual ~ChatTask();
+
+  XmppReturnStatus Send(const Jid& to, const std::string& message);
+
+  // Slot for presence message callbacks
+  sigslot::signal2<const Jid&, const std::string&> MessageRecv;
+
+protected:
+  bool HandleStanza(const XmlElement* stanza);
+
+  int ProcessStart();
 
 
-
-  return XMPP_RETURN_OK;
-}
-
-int
-MessageOutTask::ProcessStart() {
-  const XmlElement * stanza = NextStanza();
-  if (stanza == NULL)
-    return STATE_BLOCKED;
-
-  if (SendStanza(stanza) != XMPP_RETURN_OK)
-    return STATE_ERROR;
-
-  return STATE_START;
-}
+};
 
 }
+
+#endif

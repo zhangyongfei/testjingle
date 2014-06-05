@@ -99,8 +99,11 @@ set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST})
 #add_executable(login example/login_main.cc ${ALL_FILES})
 #TARGET_LINK_LIBRARIES(login ${LIBS_LIST})
 
-add_executable(fileshare example/filesharedemo.cc ${ALL_FILES})
-TARGET_LINK_LIBRARIES(fileshare ${LIBS_LIST})
+#add_executable(fileshare example/filesharedemo.cc ${ALL_FILES})
+#TARGET_LINK_LIBRARIES(fileshare ${LIBS_LIST})
+
+add_executable(testdemo example/testdemo.cc ${ALL_FILES})
+TARGET_LINK_LIBRARIES(testdemo ${LIBS_LIST})
 
 
 
