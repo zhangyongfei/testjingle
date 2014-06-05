@@ -6,6 +6,7 @@
 #include "xmpp/rostermodule.h"
 #include "test/console.h"
 #include "xmpp/chattask.h"
+#include "p2p/client/sessionmanagertask.h"
 
 
 namespace buzz
@@ -25,7 +26,33 @@ public:
 
 	void ParseLine(const std::string& line);
 
+	void SetPortAllocatorFlags(uint32 flags) { portallocator_flags_ = flags; }
+	void SetAllowLocalIps(bool allow_local_ips) {
+		allow_local_ips_ = allow_local_ips;
+	}
+
+	void SetSignalingProtocol(cricket::SignalingProtocol protocol) {
+		signaling_protocol_ = protocol;
+	}
+	void SetTransportProtocol(cricket::TransportProtocol protocol) {
+		transport_protocol_ = protocol;
+	}
+	void SetSecurePolicy(cricket::SecurePolicy sdes_policy,
+		cricket::SecurePolicy dtls_policy) {
+			sdes_policy_ = sdes_policy;
+			dtls_policy_ = dtls_policy;
+	}
+	void SetSslIdentity(talk_base::SSLIdentity* identity) {
+		ssl_identity_.reset(identity);
+	}
+
+	void SetShowRosterMessages(bool show_roster_messages) {
+		show_roster_messages_ = show_roster_messages;
+	}
+
 protected:
+	void InitP2P();
+
 	void InitPresence();
 
 	void StartXmppPing();
@@ -35,6 +62,10 @@ protected:
 	void SendChat(const buzz::Jid& to, const std::string& msg);
 
 	void RecvChat(const buzz::Jid& from, const std::string& msg);
+
+	void OnRequestSignaling();
+
+	void OnSessionCreate(cricket::Session* session, bool initiate);
 
 	void SubscriptionRequest(buzz::XmppRosterModule* roster,
 		const buzz::Jid& requesting_jid,
@@ -67,6 +98,25 @@ private:
 	buzz::XmppRosterModule *roster_module_;
 	talk_base::scoped_ptr<buzz::PingTask> ping_task_;
 	talk_base::scoped_ptr<buzz::ChatTask> chat_task_;
+
+	talk_base::Thread* worker_thread_;
+	talk_base::NetworkManager* network_manager_;
+	cricket::PortAllocator* port_allocator_;
+	cricket::SessionManager* session_manager_;
+	cricket::SessionManagerTask* session_manager_task_;
+	uint32 portallocator_flags_;
+
+	bool allow_local_ips_;
+	cricket::SignalingProtocol signaling_protocol_;
+	cricket::TransportProtocol transport_protocol_;
+	cricket::SecurePolicy sdes_policy_;
+	cricket::SecurePolicy dtls_policy_;
+	talk_base::scoped_ptr<talk_base::SSLIdentity> ssl_identity_;
+	std::string last_sent_to_;
+
+	bool show_roster_messages_;
 };
+
+#define OPENFILEADDR "10.192.1.197"
 
 #endif

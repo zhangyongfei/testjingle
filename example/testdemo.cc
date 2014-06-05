@@ -29,8 +29,8 @@ int main(int argc, char * argv[])
 	talk_base::InsecureCryptStringImpl pass;
 	std::string username;
 
-	jid=buzz::Jid(std::string("jeff@localhost"));
-	pass.password()="jeff";
+	jid=buzz::Jid(std::string("zyf@localhost"));
+	pass.password()="zyf";
 	xcs.set_user(jid.node());
 	xcs.set_resource("pcp");
 	xcs.set_host(jid.domain());
@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 	xcs.set_allow_plain(true);
 
 	xcs.set_pass(talk_base::CryptString(pass));
-	xcs.set_server(talk_base::SocketAddress("10.192.1.197", 5222));
+	xcs.set_server(talk_base::SocketAddress(OPENFILEADDR, 5222));
 
 	talk_base::Thread main_thread(&ss);
 	talk_base::ThreadManager::Instance()->SetCurrentThread(&main_thread);

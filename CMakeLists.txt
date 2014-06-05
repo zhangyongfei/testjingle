@@ -50,7 +50,13 @@ AUX_SOURCE_DIRECTORY(./p2p/client SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./base/jsoncpp SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./session/tunnel SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./session/fileshare SOURCE_LIST)
+AUX_SOURCE_DIRECTORY(./session/media SOURCE_LIST)
+AUX_SOURCE_DIRECTORY(./media/base SOURCE_LIST)
+AUX_SOURCE_DIRECTORY(./media/sctp SOURCE_LIST)
+AUX_SOURCE_DIRECTORY(./media/devices SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./test SOURCE_LIST)
+#AUX_SOURCE_DIRECTORY(./usrsctplib SOURCE_LIST)
+#AUX_SOURCE_DIRECTORY(./usrsctplib/netinet SOURCE_LIST)
 
 set(COMMON_PATH
 ${curpath}/xmpp/*.h
@@ -61,6 +67,12 @@ ${curpath}/p2p/client/*.h
 ${curpath}/base/jsoncpp/*.h
 ${curpath}/session/tunne/*.h
 ${curpath}/session/fileshare/*.h
+${curpath}/session/media/*.h
+${curpath}/media/base/*.h
+${curpath}/media/sctp/*.h
+${curpath}/media/devices/*.h
+#${curpath}/media/devices/usrsctplib/*.h
+#${curpath}/media/devices/usrsctplib/netinet/*.h
 )
 
 if(MSVC)

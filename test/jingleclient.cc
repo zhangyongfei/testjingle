@@ -3,6 +3,9 @@
 #include "base/stringencode.h"
 #include "xmpp/pingtask.h"
 #include "xmpp/constants.h"
+#include "p2p/client/basicportallocator.h"
+#include "p2p/base/sessionmanager.h"
+#include "p2p/base/session.h"
 
 // Must be period >= timeout.
 const uint32 kPingPeriodMillis = 10000;
@@ -67,6 +70,55 @@ void JingleClient::InitPresence()
 	chat_task_->Start();
 
 	// StartXmppPing(); 测试时关闭心跳功能
+}
+
+void JingleClient::InitP2P()
+{
+	worker_thread_ = new talk_base::Thread();
+	// The worker thread must be started here since initialization of
+	// the ChannelManager will generate messages that need to be
+	// dispatched by it.
+	worker_thread_->Start();
+
+	// TODO: It looks like we are leaking many objects. E.g.
+	// |network_manager_| is never deleted.
+	network_manager_ = new talk_base::BasicNetworkManager();
+
+	// TODO: Decide if the relay address should be specified here.
+	talk_base::SocketAddress stun_addr(OPENFILEADDR, 3478);
+	port_allocator_ =  new cricket::BasicPortAllocator(
+		network_manager_, stun_addr, talk_base::SocketAddress(OPENFILEADDR, 10000),
+		talk_base::SocketAddress(OPENFILEADDR, 10001), talk_base::SocketAddress(OPENFILEADDR, 10002));
+
+	if (portallocator_flags_ != 0) {
+		port_allocator_->set_flags(portallocator_flags_);
+	}
+
+	session_manager_ = new cricket::SessionManager(
+		port_allocator_, worker_thread_);
+	session_manager_->set_secure(dtls_policy_);
+	session_manager_->set_identity(ssl_identity_.get());
+	session_manager_->set_transport_protocol(transport_protocol_);
+	session_manager_->SignalRequestSignaling.connect(
+		this, &JingleClient::OnRequestSignaling);
+	session_manager_->SignalSessionCreate.connect(
+		this, &JingleClient::OnSessionCreate);
+	session_manager_->OnSignalingReady();
+
+	session_manager_task_ =
+		new cricket::SessionManagerTask(xmpp_client_, session_manager_);
+	session_manager_task_->EnableOutgoingMessages();
+	session_manager_task_->Start();
+}
+
+void JingleClient::OnRequestSignaling() 
+{
+	session_manager_->OnSignalingReady();
+}
+
+void JingleClient::OnSessionCreate(cricket::Session* session, bool initiate) 
+{
+	session->set_current_protocol(signaling_protocol_);
 }
 
 void JingleClient::SubscriptionRequest(buzz::XmppRosterModule* roster,
