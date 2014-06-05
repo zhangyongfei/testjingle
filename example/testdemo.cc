@@ -1,5 +1,7 @@
+#ifdef WIN32
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h> 
+#endif
 #include "base/physicalsocketserver.h"
 #include "base/xmldebug.h"
 #include "base/ssladapter.h"
@@ -11,6 +13,8 @@ int main(int argc, char * argv[])
 {
 #ifdef WIN32
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
+#else
+   system("stty echo");
 #endif
 	
 	talk_base::PhysicalSocketServer ss;
@@ -25,8 +29,8 @@ int main(int argc, char * argv[])
 	talk_base::InsecureCryptStringImpl pass;
 	std::string username;
 
-	jid=buzz::Jid(std::string("zyf@localhost"));
-	pass.password()="zyf";
+	jid=buzz::Jid(std::string("jeff@localhost"));
+	pass.password()="jeff";
 	xcs.set_user(jid.node());
 	xcs.set_resource("pcp");
 	xcs.set_host(jid.domain());
@@ -34,7 +38,7 @@ int main(int argc, char * argv[])
 	xcs.set_allow_plain(true);
 
 	xcs.set_pass(talk_base::CryptString(pass));
-	xcs.set_server(talk_base::SocketAddress("127.0.0.1", 5222));
+	xcs.set_server(talk_base::SocketAddress("10.192.1.197", 5222));
 
 	talk_base::Thread main_thread(&ss);
 	talk_base::ThreadManager::Instance()->SetCurrentThread(&main_thread);
