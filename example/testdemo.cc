@@ -46,11 +46,23 @@ int main(int argc, char * argv[])
 	pump.client()->SignalLogInput.connect(DebugLog::instance(), &DebugLog::Input);
 	pump.client()->SignalLogOutput.connect(DebugLog::instance(), &DebugLog::Output);
 
-	JingleClient fs_client(pump.client());
+	JingleClient client(pump.client());
 
-	Console *console = new Console(&main_thread, &fs_client);
+	Console *console = new Console(&main_thread, &client);
 
-	pump.client()->SignalStateChange.connect(&fs_client, &JingleClient::OnStateChange);
+	client.SetConsole(console);
+	client.SetAutoAccept(true);
+	client.SetPortAllocatorFlags(0);
+	client.SetAllowLocalIps(true);
+	client.SetSignalingProtocol(cricket::PROTOCOL_JINGLE);
+	client.SetTransportProtocol(cricket::ICEPROTO_GOOGLE);
+	client.SetSecurePolicy(cricket::SEC_DISABLED, cricket::SEC_DISABLED);
+	client.SetSslIdentity(NULL);
+	client.SetDataChannelType(cricket::DCT_SCTP);
+	client.SetMultiSessionEnabled(true);
+	client.SetShowRosterMessages(true);
+
+	pump.client()->SignalStateChange.connect(&client, &JingleClient::OnStateChange);
 	console->Start();
 
 	pump.DoLogin(xcs, new buzz::XmppSocket(buzz::TLS_DISABLED), NULL);

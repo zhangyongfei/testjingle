@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2010 Google Inc.
+ * Copyright 2004 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,52 +25,31 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TALK_BASE_WINDOWPICKERFACTORY_H_
-#define TALK_BASE_WINDOWPICKERFACTORY_H_
+#ifndef TALK_MEDIA_DEVICES_LINUXDEVICEMANAGER_H_
+#define TALK_MEDIA_DEVICES_LINUXDEVICEMANAGER_H_
 
-#if defined(WIN32)
-#include "os/win32/win32windowpicker.h"
-#elif defined(OSX)
-#include "base/macutils.h"
-#include "base/macwindowpicker.h"
-#elif defined(LINUX)
-#include "os/linux/linuxwindowpicker.h"
-#endif
+#include <string>
+#include <vector>
 
-#include "base/windowpicker.h"
+#include "base/sigslot.h"
+#include "base/stringencode.h"
+#include "media/devices/devicemanager.h"
+#include "sound/soundsystemfactory.h"
 
-namespace talk_base {
+namespace cricket {
 
-class WindowPickerFactory {
+class LinuxDeviceManager : public DeviceManager {
  public:
-  virtual ~WindowPickerFactory() {}
+  LinuxDeviceManager();
+  virtual ~LinuxDeviceManager();
 
-  // Instance method for dependency injection.
-  virtual WindowPicker* Create() {
-    return CreateWindowPicker();
-  }
+  virtual bool GetVideoCaptureDevices(std::vector<Device>* devs);
 
-  static WindowPicker* CreateWindowPicker() {
-#if defined(WIN32)
-    return new Win32WindowPicker();
-#elif defined(OSX)
-    return new MacWindowPicker();
-#elif defined(LINUX) && defined(HAVE_X11)
-    return new LinuxWindowPicker();
-#else
-    return NULL;
-#endif
-  }
-
-  static bool IsSupported() {
-#ifdef OSX
-    return GetOSVersionName() >= kMacOSLeopard;
-#else
-    return true;
-#endif
-  }
+ private:
+  virtual bool GetAudioDevices(bool input, std::vector<Device>* devs);
+  SoundSystemHandle sound_system_;
 };
 
-}  // namespace talk_base
+}  // namespace cricket
 
-#endif  // TALK_BASE_WINDOWPICKERFACTORY_H_
+#endif  // TALK_MEDIA_DEVICES_LINUXDEVICEMANAGER_H_

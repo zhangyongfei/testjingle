@@ -3,8 +3,8 @@ PROJECT(jingle)
 
 set(CMAKE_BUILD_TYPE DEBUG)
 if(MSVC)
-set(CMAKE_C_FLAGS "-DWIN32 -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL")
-set(CMAKE_CXX_FLAGS "-DWIN32 -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL /EHsc")
+set(CMAKE_C_FLAGS "-DHAVE_SCTP -DWIN32 -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL")
+set(CMAKE_CXX_FLAGS "-DHAVE_SCTP -DWIN32 -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL /EHsc")
 else()
 set(CMAKE_C_FLAGS "-O0 -ggdb -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL -DPOSIX -DLINUX -DHAVE_OPENSSL_SSL_H")
 set(CMAKE_CXX_FLAGS "-O0 -ggdb -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL -DPOSIX -DLINUX -DHAVE_OPENSSL_SSL_H")
@@ -30,10 +30,17 @@ endif()
 
 
 if(MSVC)
-include_directories("E:/project/Expat 2.1.0/Source/lib" "D:/work/tools/Expat 2.1.0/Source/lib" ${curpath})
+include_directories(
+"E:/project/Expat 2.1.0/Source/lib" 
+"D:/work/tools/Expat 2.1.0/Source/lib" 
+${curpath}
+${curpath}/third_party/)
 link_directories("E:/project/Expat 2.1.0/Bin" "D:/work/tools/Expat 2.1.0/Bin" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 else()
-include_directories(/home/zyf/github/extends/include ${curpath})
+include_directories(
+/home/zyf/github/extends/include 
+${curpath} 
+${curpath}/third_party/)
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} /home/zyf/github/extends/lib)
 endif()
 
@@ -41,8 +48,10 @@ AUX_SOURCE_DIRECTORY(./xmpp SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./base SOURCE_LIST)
 if(MSVC)
 AUX_SOURCE_DIRECTORY(./os/win32 SOURCE_LIST)
+AUX_SOURCE_DIRECTORY(./media/devices/win32 SOURCE_LIST)
 else()
 AUX_SOURCE_DIRECTORY(./os/linux SOURCE_LIST)
+AUX_SOURCE_DIRECTORY(./media/devices/linux SOURCE_LIST)
 endif()
 AUX_SOURCE_DIRECTORY(./xmllite SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./p2p/base SOURCE_LIST)
@@ -55,8 +64,6 @@ AUX_SOURCE_DIRECTORY(./media/base SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./media/sctp SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./media/devices SOURCE_LIST)
 AUX_SOURCE_DIRECTORY(./test SOURCE_LIST)
-#AUX_SOURCE_DIRECTORY(./usrsctplib SOURCE_LIST)
-#AUX_SOURCE_DIRECTORY(./usrsctplib/netinet SOURCE_LIST)
 
 set(COMMON_PATH
 ${curpath}/xmpp/*.h
@@ -71,15 +78,15 @@ ${curpath}/session/media/*.h
 ${curpath}/media/base/*.h
 ${curpath}/media/sctp/*.h
 ${curpath}/media/devices/*.h
-#${curpath}/media/devices/usrsctplib/*.h
-#${curpath}/media/devices/usrsctplib/netinet/*.h
 )
 
 if(MSVC)
 set(RELATIVE_PATH 
 ${COMMON_PATH}
+${curpath}/media/devices/win32/*.h
 ${curpath}/os/win32/*.h)
-set(LIBS_LIST 
+set(LIBS_LIST
+usrsctplib
 libexpat
 Secur32
 ws2_32
@@ -87,9 +94,11 @@ Iphlpapi
 wininet
 Winmm
 crypt32
-Shlwapi)
+Shlwapi
+strmiids)
 else()
-set(LIBS_LIST 
+set(LIBS_LIST
+usrsctplib 
 pthread
 expat
 dl
@@ -116,6 +125,9 @@ set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST})
 
 add_executable(testdemo example/testdemo.cc ${ALL_FILES})
 TARGET_LINK_LIBRARIES(testdemo ${LIBS_LIST})
+add_dependencies(testdemo usrsctplib)
+
+add_subdirectory(./third_party/usrsctplib)
 
 
 

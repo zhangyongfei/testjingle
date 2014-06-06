@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2010 Google Inc.
+ * Copyright 2012 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,52 +25,38 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TALK_BASE_WINDOWPICKERFACTORY_H_
-#define TALK_BASE_WINDOWPICKERFACTORY_H_
+#include "media/devices/deviceinfo.h"
 
-#if defined(WIN32)
-#include "os/win32/win32windowpicker.h"
-#elif defined(OSX)
-#include "base/macutils.h"
-#include "base/macwindowpicker.h"
-#elif defined(LINUX)
-#include "os/linux/linuxwindowpicker.h"
-#endif
+namespace cricket {
 
-#include "base/windowpicker.h"
-
-namespace talk_base {
-
-class WindowPickerFactory {
- public:
-  virtual ~WindowPickerFactory() {}
-
-  // Instance method for dependency injection.
-  virtual WindowPicker* Create() {
-    return CreateWindowPicker();
+bool GetUsbId(const Device& device, std::string* usb_id) {
+  // Both PID and VID are 4 characters.
+  const int id_size = 4;
+  const char vid[] = "vid_";  // Also contains '\0'.
+  const size_t vid_location = device.id.find(vid);
+  if (vid_location == std::string::npos ||
+      vid_location + sizeof(vid) - 1 + id_size > device.id.size()) {
+    return false;
   }
-
-  static WindowPicker* CreateWindowPicker() {
-#if defined(WIN32)
-    return new Win32WindowPicker();
-#elif defined(OSX)
-    return new MacWindowPicker();
-#elif defined(LINUX) && defined(HAVE_X11)
-    return new LinuxWindowPicker();
-#else
-    return NULL;
-#endif
+  const char pid[] = "pid_";
+  const size_t pid_location = device.id.find(pid);
+  if (pid_location == std::string::npos ||
+      pid_location + sizeof(pid) - 1 + id_size > device.id.size()) {
+    return false;
   }
+  std::string id_vendor = device.id.substr(vid_location + sizeof(vid) - 1,
+                                           id_size);
+  std::string id_product = device.id.substr(pid_location + sizeof(pid) -1,
+                                            id_size);
+  usb_id->clear();
+  usb_id->append(id_vendor);
+  usb_id->append(":");
+  usb_id->append(id_product);
+  return true;
+}
 
-  static bool IsSupported() {
-#ifdef OSX
-    return GetOSVersionName() >= kMacOSLeopard;
-#else
-    return true;
-#endif
-  }
-};
+bool GetUsbVersion(const Device& device, std::string* usb_version) {
+  return false;
+}
 
-}  // namespace talk_base
-
-#endif  // TALK_BASE_WINDOWPICKERFACTORY_H_
+}  // namespace cricket

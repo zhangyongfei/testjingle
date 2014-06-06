@@ -7,6 +7,8 @@
 #include "test/console.h"
 #include "xmpp/chattask.h"
 #include "p2p/client/sessionmanagertask.h"
+#include "media/base/mediaengine.h"
+#include "session/media/mediasessionclient.h"
 
 
 namespace buzz
@@ -25,6 +27,10 @@ public:
 	void OnStateChange(buzz::XmppEngine::State state);
 
 	void ParseLine(const std::string& line);
+
+	void SetConsole(Console *console) {
+		console_ = console;
+	}
 
 	void SetPortAllocatorFlags(uint32 flags) { portallocator_flags_ = flags; }
 	void SetAllowLocalIps(bool allow_local_ips) {
@@ -50,6 +56,18 @@ public:
 		show_roster_messages_ = show_roster_messages;
 	}
 
+	void SetDataChannelType(cricket::DataChannelType data_channel_type) {
+		data_channel_type_ = data_channel_type;
+	}
+
+	void SetMultiSessionEnabled(bool multisession_enabled) {
+		multisession_enabled_ = multisession_enabled;
+	}
+
+	void SetAutoAccept(bool auto_accept) {
+		auto_accept_ = auto_accept;
+	}
+
 protected:
 	void InitP2P();
 
@@ -59,9 +77,41 @@ protected:
 
 	void OnPingTimeout();
 
+	bool PlaceCall(const std::string& name, cricket::CallOptions options);
+
+	void Accept(const cricket::CallOptions& options);
+
+	void SetupAcceptedCall();
+
+	void OnDataReceived(cricket::Call*,
+		const cricket::ReceiveDataParams& params,
+		const talk_base::Buffer& payload);
+
+	void OnSpeakerChanged(cricket::Call* call,
+		cricket::Session* session,
+		const cricket::StreamParams& speaker_stream);
+
+	void TerminateAndRemoveSession(cricket::Call* call, 
+		const std::string& id);
+
 	void SendChat(const buzz::Jid& to, const std::string& msg);
 
 	void RecvChat(const buzz::Jid& from, const std::string& msg);
+
+	void OnCallCreate(cricket::Call* call);
+
+	void OnSessionState(cricket::Call* call,
+		cricket::Session* session,
+		cricket::Session::State state);
+
+	void OnMediaStreamsUpdate(cricket::Call* call,
+		cricket::Session* session,
+		const cricket::MediaStreams& added,
+		const cricket::MediaStreams& removed);
+
+	void OnCallDestroy(cricket::Call* call);
+
+	void OnDevicesChange();
 
 	void OnRequestSignaling();
 
@@ -93,6 +143,11 @@ protected:
 		const buzz::XmppRosterContact* removed_contact,
 		size_t index);
 
+	cricket::Session* GetFirstSession() { return sessions_[call_->id()][0]; }
+	void AddSession(cricket::Session* session) {
+		sessions_[call_->id()].push_back(session);
+	}
+
 private:
 	buzz::XmppClient *xmpp_client_;
 	buzz::XmppRosterModule *roster_module_;
@@ -104,19 +159,33 @@ private:
 	cricket::PortAllocator* port_allocator_;
 	cricket::SessionManager* session_manager_;
 	cricket::SessionManagerTask* session_manager_task_;
+	cricket::MediaEngineInterface* media_engine_;
+	cricket::DataEngineInterface* data_engine_;
+	cricket::MediaSessionClient* media_client_;
 	uint32 portallocator_flags_;
 
 	bool allow_local_ips_;
+
+	cricket::DataChannelType data_channel_type_;
 	cricket::SignalingProtocol signaling_protocol_;
 	cricket::TransportProtocol transport_protocol_;
 	cricket::SecurePolicy sdes_policy_;
 	cricket::SecurePolicy dtls_policy_;
 	talk_base::scoped_ptr<talk_base::SSLIdentity> ssl_identity_;
+	bool multisession_enabled_;
 	std::string last_sent_to_;
 
 	bool show_roster_messages_;
+
+	bool incoming_call_;
+	bool auto_accept_;
+
+	Console *console_;
+	cricket::Call* call_;
+	typedef std::map<uint32, std::vector<cricket::Session *> > SessionMap;
+	SessionMap sessions_;
 };
 
-#define OPENFILEADDR "10.192.1.197"
+#define OPENFILEADDR "10.192.1.192"
 
 #endif

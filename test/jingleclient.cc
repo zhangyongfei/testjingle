@@ -6,13 +6,19 @@
 #include "p2p/client/basicportallocator.h"
 #include "p2p/base/sessionmanager.h"
 #include "p2p/base/session.h"
+#include "media/base/rtpdataengine.h"
+#include "media/sctp/sctpdataengine.h"
 
 // Must be period >= timeout.
 const uint32 kPingPeriodMillis = 10000;
 const uint32 kPingTimeoutMillis = 10000;
 
 JingleClient::JingleClient(buzz::XmppClient *xmpp_client) :
-	xmpp_client_(xmpp_client)
+	xmpp_client_(xmpp_client),
+	call_(NULL),
+	media_client_(NULL),
+	media_engine_(NULL),
+	data_engine_(NULL)
 {
 
 }
@@ -33,6 +39,7 @@ void JingleClient::OnStateChange(buzz::XmppEngine::State state)
 		break;
 	case buzz::XmppEngine::STATE_OPEN:
 		std::cout << "Logged in as " << xmpp_client_->jid().Str() << std::endl;
+		InitP2P();
 		InitPresence();
 		break;
 	case buzz::XmppEngine::STATE_CLOSED:
@@ -109,6 +116,185 @@ void JingleClient::InitP2P()
 		new cricket::SessionManagerTask(xmpp_client_, session_manager_);
 	session_manager_task_->EnableOutgoingMessages();
 	session_manager_task_->Start();
+
+	if (!media_engine_) {
+		media_engine_ = cricket::MediaEngineFactory::Create();
+	}
+
+	if (!data_engine_) {
+		if (data_channel_type_ == cricket::DCT_SCTP) {
+#ifdef HAVE_SCTP
+			data_engine_ = new cricket::SctpDataEngine();
+#else
+			LOG(LS_WARNING) << "SCTP Data Engine not supported.";
+			data_channel_type_ = cricket::DCT_NONE;
+			data_engine_ = new cricket::RtpDataEngine();
+#endif
+		} else {
+			// Even if we have DCT_NONE, we still have a data engine, just
+			// to make sure it isn't NULL.
+			data_engine_ = new cricket::RtpDataEngine();
+		}
+	}
+
+	media_client_ = new cricket::MediaSessionClient(
+		xmpp_client_->jid(),
+		session_manager_,
+		media_engine_,
+		data_engine_,
+		cricket::DeviceManagerFactory::Create());
+	media_client_->SignalCallCreate.connect(this, &JingleClient::OnCallCreate);
+	media_client_->SignalCallDestroy.connect(this, &JingleClient::OnCallDestroy);
+	media_client_->SignalDevicesChange.connect(this,
+		&JingleClient::OnDevicesChange);
+	media_client_->set_secure(sdes_policy_);
+	media_client_->set_multisession_enabled(multisession_enabled_);
+}
+
+void JingleClient::OnCallDestroy(cricket::Call* call)
+{
+
+}
+
+void JingleClient::OnDevicesChange() 
+{
+	console_->PrintLine("Devices changed.");
+	//SetMediaCaps(media_client_->GetCapabilities(), &my_status_);
+	//SendStatus(my_status_);
+}
+
+void JingleClient::OnCallCreate(cricket::Call* call) {
+	call->SignalSessionState.connect(this, &JingleClient::OnSessionState);
+	call->SignalMediaStreamsUpdate.connect(
+		this, &JingleClient::OnMediaStreamsUpdate);
+}
+
+void JingleClient::OnMediaStreamsUpdate(cricket::Call* call,
+	cricket::Session* session,
+	const cricket::MediaStreams& added,
+	const cricket::MediaStreams& removed) {
+
+}
+
+void JingleClient::OnSessionState(cricket::Call* call,
+	cricket::Session* session,
+	cricket::Session::State state) {
+		if (state == cricket::Session::STATE_RECEIVEDINITIATE) {
+			buzz::Jid jid(session->remote_name());
+			if (call_ == call && multisession_enabled_) {
+				// We've received an initiate for an existing call. This is actually a
+				// new session for that call.
+				console_->PrintLine("Incoming session from '%s'", jid.Str().c_str());
+				AddSession(session);
+
+				cricket::CallOptions options;
+				options.has_video = call_->has_video();
+				options.data_channel_type = data_channel_type_;
+				call_->AcceptSession(session, options);
+			} else {
+				console_->PrintLine("Incoming call from '%s'", jid.Str().c_str());
+				call_ = call;
+				AddSession(session);
+				incoming_call_ = true;
+				
+				if (auto_accept_) {
+					cricket::CallOptions options;
+					options.has_video = false;
+					options.data_channel_type = data_channel_type_;
+					Accept(options);
+				}
+			}
+		} else if (state == cricket::Session::STATE_SENTINITIATE) {
+			console_->PrintLine("calling...");
+		} else if (state == cricket::Session::STATE_RECEIVEDACCEPT) {
+			console_->PrintLine("call answered");
+			SetupAcceptedCall();
+		} else if (state == cricket::Session::STATE_RECEIVEDREJECT) {
+			console_->PrintLine("call not answered");
+		} else if (state == cricket::Session::STATE_INPROGRESS) {
+			console_->PrintLine("call in progress");
+			call->SignalSpeakerMonitor.connect(this, &JingleClient::OnSpeakerChanged);
+			call->StartSpeakerMonitor(session);
+		} else if (state == cricket::Session::STATE_RECEIVEDTERMINATE) {
+			console_->PrintLine("other side terminated");
+			TerminateAndRemoveSession(call, session->id());
+		}
+}
+
+void JingleClient::OnSpeakerChanged(cricket::Call* call,
+					  cricket::Session* session,
+					  const cricket::StreamParams& speaker)
+{
+	if (!speaker.has_ssrcs()) {
+		console_->PrintLine("Session %s has no current speaker.",
+			session->id().c_str());
+	} else if (speaker.id.empty()) {
+		console_->PrintLine("Session %s speaker change to unknown (%u).",
+			session->id().c_str(), speaker.first_ssrc());
+	} else {
+		console_->PrintLine("Session %s speaker changed to %s (%u).",
+			session->id().c_str(), speaker.id.c_str(),
+			speaker.first_ssrc());
+	}
+}
+
+void JingleClient::TerminateAndRemoveSession(cricket::Call* call, 
+							   const std::string& id)
+{
+
+	std::vector<cricket::Session*>& call_sessions = sessions_[call->id()];
+	for (std::vector<cricket::Session*>::iterator iter = call_sessions.begin();
+		iter != call_sessions.end(); ++iter) {
+			if ((*iter)->id() == id) {
+				call_->TerminateSession(*iter);
+				call_sessions.erase(iter);
+				break;
+			}
+	}
+
+}
+
+void JingleClient::Accept(const cricket::CallOptions& options)
+{
+	ASSERT(call_ && incoming_call_);
+	ASSERT(sessions_[call_->id()].size() == 1);
+	cricket::Session* session = GetFirstSession();
+	call_->AcceptSession(session, options);
+	media_client_->SetFocus(call_);
+	SetupAcceptedCall();
+	incoming_call_ = false;
+}
+
+void JingleClient::SetupAcceptedCall()
+{
+	if (call_->has_data()) {
+		call_->SignalDataReceived.connect(this, &JingleClient::OnDataReceived);
+	}
+}
+
+void JingleClient::OnDataReceived(cricket::Call*,
+					const cricket::ReceiveDataParams& params,
+					const talk_base::Buffer& payload)
+{
+	// TODO(mylesj): Support receiving data on sessions other than the first.
+	cricket::Session* session = GetFirstSession();
+	if (!session)
+		return;
+
+	cricket::StreamParams stream;
+	const std::vector<cricket::StreamParams>* data_streams =
+		call_->GetDataRecvStreams(session);
+	std::string text(payload.data(), payload.length());
+	if (data_streams && GetStreamBySsrc(*data_streams, params.ssrc, &stream)) {
+		console_->PrintLine(
+			"Received data from '%s' on stream '%s' (ssrc=%u): %s",
+			stream.groupid.c_str(), stream.id.c_str(),
+			params.ssrc, text.c_str());
+	} else {
+		console_->PrintLine(
+			"Received data (ssrc=%u): %s",
+			params.ssrc, text.c_str());
+	}
 }
 
 void JingleClient::OnRequestSignaling() 
@@ -307,6 +493,15 @@ void JingleClient::ParseLine(const std::string& line)
 
 			printf("---roster[%d]:%s\n", i, contact->jid().Str().c_str());
 		}
+	}
+	else if ((words.size() == 2) && (command == "call"))
+	{
+		std::string to = GetWord(words, 1, "");
+		cricket::CallOptions options;
+		options.data_channel_type = data_channel_type_;
+		if (!PlaceCall(to, options)) {
+			console_->PrintLine("Failed to initiate call.");
+		}
 	} 
 	else if ((words.size() == 3) && (command == "msg"))
 	{
@@ -316,4 +511,18 @@ void JingleClient::ParseLine(const std::string& line)
 	{
 		roster_module_->RequestSubscription(buzz::Jid(words[2]));
 	} 
+}
+
+bool JingleClient::PlaceCall(const std::string& name, cricket::CallOptions options)
+{
+	buzz::Jid jid(name);
+
+	if (!call_) {
+		call_ = media_client_->CreateCall();
+		AddSession(call_->InitiateSession(jid, media_client_->jid(), options));
+	}
+
+	media_client_->SetFocus(call_);
+
+	return true;
 }

@@ -39,8 +39,7 @@
 #include "media/base/codec.h"
 #include "media/base/constants.h"
 #include "media/base/streamparams.h"
-//#include "usrsctplib/usrsctp.h"
-//#include "usrsctplib/netinet/sctp_header.h"
+#include "usrsctplib/usrsctp.h"
 
 namespace {
 typedef cricket::SctpDataMediaChannel::StreamSet StreamSet;

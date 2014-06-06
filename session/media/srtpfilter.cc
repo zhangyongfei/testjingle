@@ -788,6 +788,12 @@ bool SrtpSession::ProtectRtp(void* data, int in_len, int max_len,
   return SrtpNotAvailable(__FUNCTION__);
 }
 
+bool SrtpSession::ProtectRtp(void* data, int in_len, int max_len, int* out_len,
+				int64* index)
+{
+  return SrtpNotAvailable(__FUNCTION__);
+}
+
 bool SrtpSession::ProtectRtcp(void* data, int in_len, int max_len,
                               int* out_len) {
   return SrtpNotAvailable(__FUNCTION__);
@@ -798,6 +804,11 @@ bool SrtpSession::UnprotectRtp(void* data, int in_len, int* out_len) {
 }
 
 bool SrtpSession::UnprotectRtcp(void* data, int in_len, int* out_len) {
+  return SrtpNotAvailable(__FUNCTION__);
+}
+
+bool SrtpSession::GetRtpAuthParams(uint8** key, int* key_len, int* tag_len)
+{
   return SrtpNotAvailable(__FUNCTION__);
 }
 
