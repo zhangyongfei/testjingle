@@ -25,7 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "media/devices/linux/libudevsymboltable.h"
+#include "devices/linux/libudevsymboltable.h"
 
 #include <dlfcn.h>
 

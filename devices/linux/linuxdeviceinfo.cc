@@ -28,7 +28,7 @@
 #include "media/devices/deviceinfo.h"
 
 #include "base/common.h"  // for ASSERT
-#include "media/devices/linux/libudevsymboltable.h"
+#include "devices/linux/libudevsymboltable.h"
 
 namespace cricket {
 

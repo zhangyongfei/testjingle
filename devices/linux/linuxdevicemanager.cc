@@ -25,11 +25,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "media/devices/linux/linuxdevicemanager.h"
+#include "devices/linux/linuxdevicemanager.h"
 
 #include <unistd.h>
 #include "base/fileutils.h"
-#include "base/linux.h"
+#include "os/linux/linux.h"
 #include "base/logging.h"
 #include "base/pathutils.h"
 #include "base/physicalsocketserver.h"
@@ -37,8 +37,8 @@
 #include "base/stringutils.h"
 #include "base/thread.h"
 #include "media/base/mediacommon.h"
-#include "media/devices/linux/libudevsymboltable.h"
-#include "media/devices/linux/v4llookup.h"
+#include "devices/linux/libudevsymboltable.h"
+#include "devices/linux/v4llookup.h"
 #include "sound/platformsoundsystem.h"
 #include "sound/platformsoundsystemfactory.h"
 #include "sound/sounddevicelocator.h"

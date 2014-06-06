@@ -32,6 +32,15 @@
 #include <string>
 #include <vector>
 
+#ifdef WIN32
+#if _MSC_VER < 1600
+#undef EINPROGRESS
+#define EINPROGRESS 10036L
+#undef EWOULDBLOCK  // Remove errno.h's definition for each macro below.
+#define EWOULDBLOCK 10035L
+#endif
+#endif
+
 namespace cricket {
 // Some ERRNO values get re-#defined to WSA* equivalents in some 
 // headers.  We save the original ones in an enum.
