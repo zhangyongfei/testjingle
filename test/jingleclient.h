@@ -9,7 +9,7 @@
 #include "p2p/client/sessionmanagertask.h"
 #include "media/base/mediaengine.h"
 #include "session/media/mediasessionclient.h"
-#include "session/fileshare/filesessionclient.h"
+#include "session/fileshare/FileSessionClient.h"
 
 
 namespace buzz
@@ -105,6 +105,10 @@ protected:
 
 	void OnFileDestroy(cricket::FilePump* call);
 
+	void OnSessionState(cricket::FilePump* call,
+		cricket::Session* session,
+		cricket::Session::State state);
+
 	void OnCallCreate(cricket::Call* call);
 
 	void OnSessionState(cricket::Call* call,
@@ -198,6 +202,6 @@ private:
 	SessionMap sessions_;
 };
 
-#define OPENFILEADDR "192.168.1.102"
+#define OPENFILEADDR "10.192.1.192"
 
 #endif

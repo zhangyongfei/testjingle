@@ -1198,7 +1198,7 @@ void Session::OnTransportSendError(Transport* transport,
 
 void Session::OnIncomingMessage(const SessionMessage& msg) {
   ASSERT(signaling_thread()->IsCurrent());
-  ASSERT(state() == STATE_INIT || msg.from == remote_name());
+  ASSERT(state() == STATE_INIT || buzz::Jid(msg.from).BareJid() == buzz::Jid(remote_name()).BareJid());
 
   if (current_protocol_== PROTOCOL_HYBRID) {
     if (msg.protocol == PROTOCOL_GINGLE) {

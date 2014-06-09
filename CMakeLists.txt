@@ -136,7 +136,7 @@ Xcomposite)
 endif()
 
 file(GLOB_RECURSE HEADER_LIST ${RELATIVE_PATH})
-set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST})
+set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST} ${curpath}/example/testdemo.cc)
 
 #add_executable(register example/register.cc ${ALL_FILES})
 #TARGET_LINK_LIBRARIES(register ${LIBS_LIST})
@@ -149,14 +149,14 @@ set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST})
 
 source_group_by_dir(ALL_FILES)
 
-add_executable(testdemo example/testdemo.cc ${ALL_FILES})
+add_executable(testdemo ${ALL_FILES})
 TARGET_LINK_LIBRARIES(testdemo ${LIBS_LIST})
 add_dependencies(testdemo usrsctplib)
 
 add_subdirectory(./third_party/usrsctplib)
 
-if(MSVC)
-set_target_properties(testdemo PROPERTIES FOLDER "test") 
-endif()
+#if(MSVC)
+#set_target_properties(testdemo PROPERTIES FOLDER "test") 
+#endif()
 
 

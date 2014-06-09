@@ -8,6 +8,8 @@
 #include "p2p/base/session.h"
 #include "media/base/rtpdataengine.h"
 #include "media/sctp/sctpdataengine.h"
+#include "session/fileshare/FilePump.h"
+#include "base/pathutils.h"
 
 // Must be period >= timeout.
 const uint32 kPingPeriodMillis = 10000;
@@ -18,7 +20,8 @@ JingleClient::JingleClient(buzz::XmppClient *xmpp_client) :
 	call_(NULL),
 	media_client_(NULL),
 	media_engine_(NULL),
-	data_engine_(NULL)
+	data_engine_(NULL),
+	pump_(NULL)
 {
 
 }
@@ -152,8 +155,12 @@ void JingleClient::InitP2P()
 
 	// ÎÄ¼þ¹²Ïí
 	file_client_ = new cricket::FileSessionClient(
+		xmpp_client_->jid(),
 		session_manager_
 		);
+
+	file_client_->SignalPumpCreate.connect(this, &JingleClient::OnFileCreate);
+	file_client_->SignalPumpCreate.connect(this, &JingleClient::OnFileDestroy);
 }
 
 void JingleClient::OnCallDestroy(cricket::Call* call)
@@ -174,9 +181,9 @@ void JingleClient::OnCallCreate(cricket::Call* call) {
 		this, &JingleClient::OnMediaStreamsUpdate);
 }
 
-void JingleClient::OnFileCreate(cricket::FilePump* call)
+void JingleClient::OnFileCreate(cricket::FilePump* pump)
 {
-
+	pump->SignalSessionState.connect(this, &JingleClient::OnSessionState);
 }
 
 void JingleClient::OnFileDestroy(cricket::FilePump* call)
@@ -188,6 +195,30 @@ void JingleClient::OnMediaStreamsUpdate(cricket::Call* call,
 	const cricket::MediaStreams& added,
 	const cricket::MediaStreams& removed) {
 
+}
+
+void JingleClient::OnSessionState(cricket::FilePump* call,
+					cricket::Session* session,
+					cricket::Session::State state)
+{
+	if (state == cricket::Session::STATE_RECEIVEDINITIATE) 
+	{
+		buzz::Jid jid(session->remote_name());
+		if (pump_ != call)
+		{
+			console_->PrintLine("Incoming call from '%s'", jid.Str().c_str());
+			pump_ = call;
+			AddSession(pump_->id(), session);
+
+			if (auto_accept_) {
+				ASSERT(sessions_[pump_->id()].size() == 1);
+				cricket::Session* session = GetFirstSession(pump_->id());
+				cricket::FileOption options;
+				pump_->AcceptSession(session, options);
+				//SetupAcceptedCall();
+			}
+		}
+	}
 }
 
 void JingleClient::OnSessionState(cricket::Call* call,
@@ -517,6 +548,14 @@ void JingleClient::ParseLine(const std::string& line)
 			console_->PrintLine("Failed to initiate call.");
 		}
 	} 
+	else if ((command == "file"))
+	{
+		std::string to = "jeff@fengmao";
+		if (!PlacePump(to, "hello.txt"))
+		{
+			console_->PrintLine("Failed to initiate call.");
+		}
+	} 
 	else if ((words.size() == 3) && (command == "msg"))
 	{
 		SendChat(buzz::Jid(words[1]), words[2]);
@@ -544,6 +583,15 @@ bool JingleClient::PlaceCall(const std::string& name, cricket::CallOptions optio
 bool JingleClient::PlacePump(const std::string& name, const std::string& filename)
 {
     buzz::Jid jid(name);
+
+	cricket::FileOption options;
+
+	size_t size = 0;
+	talk_base::Pathname tmpfile(filename);
+	talk_base::Filesystem::GetFileSize(tmpfile, &size);
+
+	options.set_file_name(tmpfile);
+	options.set_file_size(size);
 
 	if (!pump_) {
 		pump_ = file_client_->CreatePump();

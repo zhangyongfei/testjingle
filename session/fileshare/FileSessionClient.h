@@ -4,6 +4,7 @@
 #include "p2p/base/sessionclient.h"
 #include "p2p/client/sessionmanagertask.h"
 #include "p2p/base/session.h"
+#include "session/fileshare/FileSession.h"
 
 namespace cricket {
 
@@ -17,14 +18,16 @@ public:
 
 	FilePump *CreatePump();
 	
-	const SessionManager& session_manager() { return session_manager_; }
+	const SessionManager* session_manager() { return session_manager_; }
 
-	SessionDescription* CreateOffer(const CallOptions& options) {
-		return NULL;
-	}
+	SessionDescription* CreateOffer(const FileOption& options);
+	SessionDescription* CreateAnswer(const SessionDescription* offer,
+		const FileOption& options);
 
 	Session *CreateSession(FilePump *call);
 	Session *CreateSession(const std::string& id, FilePump* call);
+
+	const buzz::Jid jid() { return jid_; }
 
 	sigslot::signal1<FilePump *> SignalPumpCreate;
     sigslot::signal1<FilePump *> SignalPumpDestroy;
@@ -55,7 +58,11 @@ protected:
 
 private:
 	SessionManager* session_manager_;
-	buzz::Jid id_;
+	buzz::Jid jid_;
+
+	// Maintain a mapping of session id to call.
+	typedef std::map<std::string, FilePump *> SessionMap;
+	SessionMap session_map_;
 };
 
 }
