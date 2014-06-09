@@ -9,6 +9,7 @@
 #include "p2p/client/sessionmanagertask.h"
 #include "media/base/mediaengine.h"
 #include "session/media/mediasessionclient.h"
+#include "session/fileshare/filesessionclient.h"
 
 
 namespace buzz
@@ -79,6 +80,8 @@ protected:
 
 	bool PlaceCall(const std::string& name, cricket::CallOptions options);
 
+	bool PlacePump(const std::string& name, const std::string& filename);
+
 	void Accept(const cricket::CallOptions& options);
 
 	void SetupAcceptedCall();
@@ -97,6 +100,10 @@ protected:
 	void SendChat(const buzz::Jid& to, const std::string& msg);
 
 	void RecvChat(const buzz::Jid& from, const std::string& msg);
+
+	void OnFileCreate(cricket::FilePump* call);
+
+	void OnFileDestroy(cricket::FilePump* call);
 
 	void OnCallCreate(cricket::Call* call);
 
@@ -143,9 +150,9 @@ protected:
 		const buzz::XmppRosterContact* removed_contact,
 		size_t index);
 
-	cricket::Session* GetFirstSession() { return sessions_[call_->id()][0]; }
-	void AddSession(cricket::Session* session) {
-		sessions_[call_->id()].push_back(session);
+	cricket::Session* GetFirstSession(uint32 id) { return sessions_[id][0]; } //call_->id()
+	void AddSession(uint32 id, cricket::Session* session) {
+		sessions_[id].push_back(session); //call_->id()
 	}
 
 private:
@@ -159,9 +166,13 @@ private:
 	cricket::PortAllocator* port_allocator_;
 	cricket::SessionManager* session_manager_;
 	cricket::SessionManagerTask* session_manager_task_;
+
 	cricket::MediaEngineInterface* media_engine_;
 	cricket::DataEngineInterface* data_engine_;
+
 	cricket::MediaSessionClient* media_client_;
+	cricket::FileSessionClient* file_client_;
+
 	uint32 portallocator_flags_;
 
 	bool allow_local_ips_;
@@ -182,6 +193,7 @@ private:
 
 	Console *console_;
 	cricket::Call* call_;
+	cricket::FilePump* pump_;
 	typedef std::map<uint32, std::vector<cricket::Session *> > SessionMap;
 	SessionMap sessions_;
 };

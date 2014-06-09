@@ -149,6 +149,11 @@ void JingleClient::InitP2P()
 		&JingleClient::OnDevicesChange);
 	media_client_->set_secure(sdes_policy_);
 	media_client_->set_multisession_enabled(multisession_enabled_);
+
+	// ÎÄ¼þ¹²Ïí
+	file_client_ = new cricket::FileSessionClient(
+		session_manager_
+		);
 }
 
 void JingleClient::OnCallDestroy(cricket::Call* call)
@@ -169,6 +174,15 @@ void JingleClient::OnCallCreate(cricket::Call* call) {
 		this, &JingleClient::OnMediaStreamsUpdate);
 }
 
+void JingleClient::OnFileCreate(cricket::FilePump* call)
+{
+
+}
+
+void JingleClient::OnFileDestroy(cricket::FilePump* call)
+{
+}
+
 void JingleClient::OnMediaStreamsUpdate(cricket::Call* call,
 	cricket::Session* session,
 	const cricket::MediaStreams& added,
@@ -185,7 +199,7 @@ void JingleClient::OnSessionState(cricket::Call* call,
 				// We've received an initiate for an existing call. This is actually a
 				// new session for that call.
 				console_->PrintLine("Incoming session from '%s'", jid.Str().c_str());
-				AddSession(session);
+				AddSession(call_->id(), session);
 
 				cricket::CallOptions options;
 				options.has_video = call_->has_video();
@@ -194,7 +208,7 @@ void JingleClient::OnSessionState(cricket::Call* call,
 			} else {
 				console_->PrintLine("Incoming call from '%s'", jid.Str().c_str());
 				call_ = call;
-				AddSession(session);
+				AddSession(call_->id(), session);
 				incoming_call_ = true;
 				
 				if (auto_accept_) {
@@ -258,7 +272,7 @@ void JingleClient::Accept(const cricket::CallOptions& options)
 {
 	ASSERT(call_ && incoming_call_);
 	ASSERT(sessions_[call_->id()].size() == 1);
-	cricket::Session* session = GetFirstSession();
+	cricket::Session* session = GetFirstSession(call_->id());
 	call_->AcceptSession(session, options);
 	media_client_->SetFocus(call_);
 	SetupAcceptedCall();
@@ -277,7 +291,7 @@ void JingleClient::OnDataReceived(cricket::Call*,
 					const talk_base::Buffer& payload)
 {
 	// TODO(mylesj): Support receiving data on sessions other than the first.
-	cricket::Session* session = GetFirstSession();
+	cricket::Session* session = GetFirstSession(call_->id());
 	if (!session)
 		return;
 
@@ -519,10 +533,22 @@ bool JingleClient::PlaceCall(const std::string& name, cricket::CallOptions optio
 
 	if (!call_) {
 		call_ = media_client_->CreateCall();
-		AddSession(call_->InitiateSession(jid, media_client_->jid(), options));
+		AddSession(call_->id(), call_->InitiateSession(jid, media_client_->jid(), options));
 	}
 
 	media_client_->SetFocus(call_);
 
 	return true;
+}
+
+bool JingleClient::PlacePump(const std::string& name, const std::string& filename)
+{
+    buzz::Jid jid(name);
+
+	if (!pump_) {
+		pump_ = file_client_->CreatePump();
+		AddSession(pump_->id(), pump_->InitiateSession(jid, file_client_->jid(), options));
+	}
+
+    return true;
 }
