@@ -63,6 +63,9 @@ namespace cricket {
 		bool succeeded = true;
 		FileSession file_session;
 		file_session.session = session;
+
+		file_session.filechannel = new FileChannel();
+		file_session.filechannel->Init();
 		
 		if (succeeded) {
 			// Add session to list, create channels for this session.

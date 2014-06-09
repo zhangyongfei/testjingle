@@ -38,6 +38,7 @@ public:
 protected:
 	struct FileSession {
 		Session* session;
+		FileChannel *filechannel;
 	};
 
 	// Create a map of media sessions, keyed off session->id().

@@ -18,14 +18,14 @@ public:
 	}
 
 	void set_file_name(const talk_base::Pathname& file_name) { file_name_ = file_name; }
-	void set_file_size(const uint64_t file_size) { file_size_ = file_size; }
+	void set_file_size(const uint64 file_size) { file_size_ = file_size; }
 
 	const talk_base::Pathname& file_name() const { return file_name_; }
-	const uint64_t file_size() const { return file_size_; }
+	const uint64 file_size() const { return file_size_; }
 
 private:
 	talk_base::Pathname file_name_;
-	uint64_t    file_size_;
+	uint64    file_size_;
 };
 
 class FileDescription : public ContentDescription
