@@ -161,6 +161,7 @@ void JingleClient::InitP2P()
 
 	file_client_->SignalPumpCreate.connect(this, &JingleClient::OnFileCreate);
 	file_client_->SignalPumpCreate.connect(this, &JingleClient::OnFileDestroy);
+
 }
 
 void JingleClient::OnCallDestroy(cricket::Call* call)
