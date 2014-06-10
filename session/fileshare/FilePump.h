@@ -7,6 +7,7 @@
 namespace cricket {
 
 class FileSessionClient;
+class FileChannel;
 
 class FilePump : public talk_base::MessageHandler, public sigslot::has_slots<>
 {

@@ -298,12 +298,12 @@ void P2PTransportChannel::SetRemoteIceMode(IceMode mode) {
 // Go into the state of processing candidates, and running in general
 void P2PTransportChannel::Connect() {
   ASSERT(worker_thread_ == talk_base::Thread::Current());
-  if (ice_ufrag_.empty() || ice_pwd_.empty()) {
+  /*if (ice_ufrag_.empty() || ice_pwd_.empty()) { //zyf
     ASSERT(false);
     LOG(LS_ERROR) << "P2PTransportChannel::Connect: The ice_ufrag_ and the "
                   << "ice_pwd_ are not set.";
     return;
-  }
+  }*/
 
   // Kick off an allocator session
   Allocate();

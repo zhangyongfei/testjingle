@@ -95,10 +95,12 @@ void JingleClient::InitP2P()
 	network_manager_ = new talk_base::BasicNetworkManager();
 
 	// TODO: Decide if the relay address should be specified here.
-	talk_base::SocketAddress stun_addr(OPENFILEADDR, 3478);
+	talk_base::SocketAddress stun_addr("stun.xten.net", 3478);
 	port_allocator_ =  new cricket::BasicPortAllocator(
 		network_manager_, stun_addr, talk_base::SocketAddress(OPENFILEADDR, 10000),
-		talk_base::SocketAddress(OPENFILEADDR, 10001), talk_base::SocketAddress(OPENFILEADDR, 10002));
+		talk_base::SocketAddress(OPENFILEADDR, 10001), 
+		talk_base::SocketAddress(OPENFILEADDR, 10002));
+
 
 	if (portallocator_flags_ != 0) {
 		port_allocator_->set_flags(portallocator_flags_);
@@ -161,7 +163,6 @@ void JingleClient::InitP2P()
 
 	file_client_->SignalPumpCreate.connect(this, &JingleClient::OnFileCreate);
 	file_client_->SignalPumpCreate.connect(this, &JingleClient::OnFileDestroy);
-
 }
 
 void JingleClient::OnCallDestroy(cricket::Call* call)

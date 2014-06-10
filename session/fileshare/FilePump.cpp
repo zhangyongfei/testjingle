@@ -1,5 +1,6 @@
 #include "FilePump.h"
 #include "session/fileshare/FileSessionClient.h"
+#include "FileChannel.h"
 
 namespace cricket {
 
@@ -64,7 +65,9 @@ namespace cricket {
 		FileSession file_session;
 		file_session.session = session;
 
-		file_session.filechannel = new FileChannel();
+		file_session.filechannel = new FileChannel(
+			session->worker_thread(),
+			session, "file");
 		file_session.filechannel->Init();
 		
 		if (succeeded) {

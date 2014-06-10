@@ -149,7 +149,7 @@ Session* SessionManager::FindSession(const std::string& sid,
     return NULL;
 
   Session* session = iter->second;
-  if (buzz::Jid(remote_name).BareJid() != buzz::Jid(session->remote_name()))
+  if (buzz::Jid(remote_name).BareJid() != buzz::Jid(session->remote_name()).BareJid())
     return NULL;
 
   return session;
