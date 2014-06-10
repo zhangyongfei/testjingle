@@ -202,6 +202,6 @@ private:
 	SessionMap sessions_;
 };
 
-#define OPENFILEADDR "10.192.1.192"
+#define OPENFILEADDR "192.168.1.102"
 
 #endif

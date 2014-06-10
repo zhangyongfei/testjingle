@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
 	
 	talk_base::PhysicalSocketServer ss;
 
-	talk_base::LogMessage::LogToDebug(talk_base::LS_VERBOSE);
+	talk_base::LogMessage::LogToDebug(talk_base::LS_INFO);
 
 	talk_base::InitializeSSL();
 

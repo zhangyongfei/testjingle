@@ -95,7 +95,7 @@ void JingleClient::InitP2P()
 	network_manager_ = new talk_base::BasicNetworkManager();
 
 	// TODO: Decide if the relay address should be specified here.
-	talk_base::SocketAddress stun_addr("stun.xten.net", 3478);
+	talk_base::SocketAddress stun_addr(OPENFILEADDR, 3478);
 	port_allocator_ =  new cricket::BasicPortAllocator(
 		network_manager_, stun_addr, talk_base::SocketAddress(OPENFILEADDR, 10000),
 		talk_base::SocketAddress(OPENFILEADDR, 10001), 
@@ -552,7 +552,7 @@ void JingleClient::ParseLine(const std::string& line)
 	} 
 	else if ((command == "file"))
 	{
-		std::string to = "jeff@fengmao";
+		std::string to = "yym@miaomiao";
 		if (!PlacePump(to, "hello.txt"))
 		{
 			console_->PrintLine("Failed to initiate call.");
