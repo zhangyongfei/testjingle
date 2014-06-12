@@ -153,7 +153,9 @@ add_executable(testdemo ${ALL_FILES})
 TARGET_LINK_LIBRARIES(testdemo ${LIBS_LIST})
 add_dependencies(testdemo usrsctplib)
 
-add_subdirectory(./third_party/usrsctplib)
+add_subdirectory(./p2pserver/stunserver)
+add_subdirectory(./p2pserver/turnserver)
+add_subdirectory(./p2pserver/relayserver)
 
 #if(MSVC)
 #set_target_properties(testdemo PROPERTIES FOLDER "test") 
