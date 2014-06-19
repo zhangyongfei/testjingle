@@ -39,7 +39,7 @@
 #endif
 
 #ifdef WIN32
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #endif
 
 #include "base/basictypes.h"

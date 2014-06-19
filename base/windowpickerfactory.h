@@ -29,7 +29,7 @@
 #define TALK_BASE_WINDOWPICKERFACTORY_H_
 
 #if defined(WIN32)
-#include "os/win32/win32windowpicker.h"
+#include "base/win32/win32windowpicker.h"
 #elif defined(OSX)
 #include "base/macutils.h"
 #include "base/macwindowpicker.h"

@@ -36,7 +36,7 @@
 #include "base/socketfactory.h"
 #include "base/socket.h"
 #include "base/thread.h"
-#include "os/win32/win32window.h"
+#include "base/win32/win32window.h"
 
 namespace talk_base {
 

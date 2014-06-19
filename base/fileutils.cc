@@ -31,7 +31,7 @@
 // TODO(grunell): Remove io.h includes when Chromium has started
 // to use AEC in each source. http://crbug.com/264611.
 #include <io.h>
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #endif
 
 #include "base/pathutils.h"
@@ -40,7 +40,7 @@
 #include "base/stream.h"
 
 #ifdef WIN32
-#include "os/win32/win32filesystem.h"
+#include "base/win32/win32filesystem.h"
 #else
 #include "os/linux/unixfilesystem.h"
 #endif

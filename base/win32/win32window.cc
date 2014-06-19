@@ -27,7 +27,7 @@
 
 #include "base/common.h"
 #include "base/logging.h"
-#include "os/win32/win32window.h"
+#include "base/win32/win32window.h"
 
 namespace talk_base {
 

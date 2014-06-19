@@ -24,7 +24,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #define SECURITY_WIN32
 #include <security.h>
 #include <schannel.h>
@@ -34,7 +34,7 @@
 
 #include "base/common.h"
 #include "base/logging.h"
-#include "os/win32/schanneladapter.h"
+#include "base/win32/schanneladapter.h"
 #include "base/sec_buffer.h"
 #include "base/thread.h"
 

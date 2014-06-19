@@ -4,7 +4,7 @@
 #ifndef TALK_BASE_WIN32WINDOWPICKER_H_
 #define TALK_BASE_WIN32WINDOWPICKER_H_
 
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #include "base/windowpicker.h"
 
 namespace talk_base {

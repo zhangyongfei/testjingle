@@ -41,8 +41,8 @@
 #include "base/logging.h"
 #include "base/stringutils.h"
 #include "base/thread.h"
-#include "os/win32/win32.h"  // ToUtf8
-#include "os/win32/win32window.h"
+#include "base/win32/win32.h"  // ToUtf8
+#include "base/win32/win32window.h"
 #include "media/base/mediacommon.h"
 #ifdef HAVE_LOGITECH_HEADERS
 #include "third_party/logitech/files/logitechquickcam.h"

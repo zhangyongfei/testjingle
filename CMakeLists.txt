@@ -1,110 +1,50 @@
 cmake_minimum_required(VERSION 2.8)
-PROJECT(jingle)
 
-macro(source_group_by_dir source_files)
-    if(MSVC)
-        set(sgbd_cur_dir ${CMAKE_CURRENT_SOURCE_DIR})
-        foreach(sgbd_file ${${source_files}})
-            string(REGEX REPLACE ${sgbd_cur_dir}/\(.*\) \\1 sgbd_fpath ${sgbd_file})
-            string(REGEX REPLACE "\(.*\)/.*" \\1 sgbd_group_name ${sgbd_fpath})
-            string(COMPARE EQUAL ${sgbd_fpath} ${sgbd_group_name} sgbd_nogroup)
-            string(REPLACE "/" "\\" sgbd_group_name ${sgbd_group_name})
-            if(sgbd_nogroup)
-                set(sgbd_group_name "\\")
-            endif(sgbd_nogroup)
-            source_group(${sgbd_group_name} FILES ${sgbd_file})
-        endforeach(sgbd_file)
-    endif(MSVC)
-endmacro(source_group_by_dir)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/CMakeUtility)
+include(CMakeUtility)
 
+Solution(jingle ON)
 
-set(CMAKE_BUILD_TYPE DEBUG)
-if(MSVC)
-set_property(GLOBAL PROPERTY USE_FOLDERS On)
-set(CMAKE_C_FLAGS "-DHAVE_SCTP -DWIN32 -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL")
-set(CMAKE_CXX_FLAGS "-DHAVE_SCTP -DWIN32 -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL /EHsc")
-else()
-set(CMAKE_C_FLAGS "-O0 -ggdb -DHAVE_SCTP -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL -DPOSIX -DLINUX -DHAVE_OPENSSL_SSL_H")
-set(CMAKE_CXX_FLAGS "-O0 -ggdb -DHAVE_SCTP -D_DEBUG -DDEBUG -DFEATURE_ENABLE_SSL -DPOSIX -DLINUX -DHAVE_OPENSSL_SSL_H")
-set(CMAKE_C_FLAGS_DEBUG "-O0 -ggdb")
-set(CMAKE_C_FLAGS_RELEASE "-O0 -ggdb")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb")
-set(CMAKE_CXX_FLAGS_RELEASE "-O0 -ggdb")
-endif()
-
-string(REGEX MATCH ".*/" curpath ${CMAKE_CURRENT_LIST_FILE})
-message(${curpath})
-if(MSVC)
-set(buildpath ${curpath}/build)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${buildpath})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${buildpath})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${buildpath})
-else()
-set(buildpath $ENV{PWD})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${buildpath}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${buildpath}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${buildpath}/bin)
-endif()
-
-
-if(MSVC)
-include_directories(
-"E:/project/Expat 2.1.0/Source/lib" 
-"D:/work/tools/Expat 2.1.0/Source/lib" 
-${curpath}
-${curpath}/third_party/)
-link_directories("E:/project/Expat 2.1.0/Bin" "D:/work/tools/Expat 2.1.0/Bin" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
-else()
-include_directories(
-/home/zyf/github/extends/include 
-${curpath} 
-${curpath}/third_party/)
-link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} /home/zyf/github/extends/lib)
-endif()
-
-AUX_SOURCE_DIRECTORY(${curpath}/xmpp SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/base SOURCE_LIST)
-if(MSVC)
-AUX_SOURCE_DIRECTORY(${curpath}/os/win32 SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/devices/win32 SOURCE_LIST)
-else()
-AUX_SOURCE_DIRECTORY(${curpath}/os/linux SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/devices/linux SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/sound SOURCE_LIST)
-endif()
-AUX_SOURCE_DIRECTORY(${curpath}/xmllite SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/p2p/base SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/p2p/client SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/base/jsoncpp SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/session/tunnel SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/session/fileshare SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/session/media SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/media/base SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/media/sctp SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/media/devices SOURCE_LIST)
-AUX_SOURCE_DIRECTORY(${curpath}/test SOURCE_LIST)
-
-set(COMMON_PATH
-${curpath}/xmpp/*.h
-${curpath}/base/*.h
-${curpath}/xmllite/*.h
-${curpath}/p2p/base/*.h
-${curpath}/p2p/client/*.h
-${curpath}/base/jsoncpp/*.h
-${curpath}/session/tunne/*.h
-${curpath}/session/fileshare/*.h
-${curpath}/session/media/*.h
-${curpath}/media/base/*.h
-${curpath}/media/sctp/*.h
-${curpath}/media/devices/*.h
+AddHDirWin32(
+"E:/project/Expat 2.1.0/Source/lib"
+"D:/work/tools/Expat 2.1.0/Source/lib"
+${CMAKE_CURRENT_LIST_DIR}/third_party/)
+AddHDirLinux(
+/home/zyf/github/extends/include
 )
 
-if(MSVC)
-set(RELATIVE_PATH 
-${COMMON_PATH}
-${curpath}/devices/win32/*.h
-${curpath}/os/win32/*.h)
-set(LIBS_LIST
+AddLibDirsWin32(
+"E:/project/Expat 2.1.0/Bin"
+"D:/work/tools/Expat 2.1.0/Bin")
+AddLibDirsLinux(
+/home/zyf/github/extends/lib)
+
+AddSrcDir(SOURCE_LIST
+${CMAKE_CURRENT_LIST_DIR}/xmpp
+${CMAKE_CURRENT_LIST_DIR}/base
+${CMAKE_CURRENT_LIST_DIR}/xmllite
+${CMAKE_CURRENT_LIST_DIR}/p2p/base
+${CMAKE_CURRENT_LIST_DIR}/p2p/client
+${CMAKE_CURRENT_LIST_DIR}/base/jsoncpp
+${CMAKE_CURRENT_LIST_DIR}/session/tunnel 
+${CMAKE_CURRENT_LIST_DIR}/session/fileshare
+${CMAKE_CURRENT_LIST_DIR}/session/media
+${CMAKE_CURRENT_LIST_DIR}/media/base
+${CMAKE_CURRENT_LIST_DIR}/media/sctp
+${CMAKE_CURRENT_LIST_DIR}/media/devices
+${CMAKE_CURRENT_LIST_DIR}/test)
+
+AddSrcDirWin32(SOURCE_LIST
+${CMAKE_CURRENT_LIST_DIR}/base/win32
+${CMAKE_CURRENT_LIST_DIR}/media/devices/win32)
+AddSrcDirLinux(SOURCE_LIST
+${CMAKE_CURRENT_LIST_DIR}/base/linux
+${CMAKE_CURRENT_LIST_DIR}/media/devices/linux
+${CMAKE_CURRENT_LIST_DIR}/sound
+)
+
+SET(LIBS_LIST)
+AddLibsWin32(LIBS_LIST
 usrsctplib
 libexpat
 Secur32
@@ -115,13 +55,8 @@ Winmm
 crypt32
 Shlwapi
 strmiids)
-else()
-set(RELATIVE_PATH 
-${COMMON_PATH}
-${curpath}/devices/linux/*.h
-${curpath}/sound/*.h
-${curpath}/os/linux/*.h)
-set(LIBS_LIST
+
+AddLibsLinux(LIBS_LIST
 usrsctplib 
 pthread
 expat
@@ -133,10 +68,8 @@ ssl
 rt
 Xrender
 Xcomposite)
-endif()
 
-file(GLOB_RECURSE HEADER_LIST ${RELATIVE_PATH})
-set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST} ${curpath}/example/testdemo.cc)
+MESSAGE(STATUS "${LIBS_LIST}")
 
 #add_executable(register example/register.cc ${ALL_FILES})
 #TARGET_LINK_LIBRARIES(register ${LIBS_LIST})
@@ -147,18 +80,13 @@ set(ALL_FILES ${HEADER_LIST} ${SOURCE_LIST} ${curpath}/example/testdemo.cc)
 #add_executable(fileshare example/filesharedemo.cc ${ALL_FILES})
 #TARGET_LINK_LIBRARIES(fileshare ${LIBS_LIST})
 
-source_group_by_dir(ALL_FILES)
+AddSrc(SOURCE_LIST
+${CMAKE_CURRENT_LIST_DIR}/example/testdemo.cc)
 
-add_executable(testdemo ${ALL_FILES})
-TARGET_LINK_LIBRARIES(testdemo ${LIBS_LIST})
-add_dependencies(testdemo usrsctplib)
+AppPrj(testdemo SOURCE_LIST LIBS_LIST)
 
-add_subdirectory(./p2pserver/stunserver)
-add_subdirectory(./p2pserver/turnserver)
-add_subdirectory(./p2pserver/relayserver)
+AddSubPrj(./third_party/usrsctplib)
+#add_dependencies(testdemo usrsctplib)
 
-#if(MSVC)
-#set_target_properties(testdemo PROPERTIES FOLDER "test") 
-#endif()
 
 

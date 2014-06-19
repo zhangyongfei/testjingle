@@ -60,8 +60,8 @@
 #include "base/physicalsocketserver.h"
 #include "base/timeutils.h"
 #ifdef WIN32
-#include "os/win32/winping.h"
-#include "os/win32/win32socketinit.h"
+#include "base/win32/winping.h"
+#include "base/win32/win32socketinit.h"
 #endif
 
 // stm: this will tell us if we are on OSX

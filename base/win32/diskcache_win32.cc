@@ -25,7 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #include <shellapi.h>
 #include <shlobj.h>
 #include <tchar.h>
@@ -39,7 +39,7 @@
 #include "base/stringencode.h"
 #include "base/stringutils.h"
 
-#include "os/win32/diskcache_win32.h"
+#include "base/win32/diskcache_win32.h"
 
 namespace talk_base {
 

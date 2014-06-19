@@ -41,7 +41,7 @@
 #include <vector>
 
 #include "base/basictypes.h"
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 
 namespace talk_base {
 

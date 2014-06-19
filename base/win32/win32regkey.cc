@@ -34,7 +34,7 @@
 //   * to fix REG_SZ or REG_EXPAND_SZ data that is not properly null-terminated;
 //   * to expand REG_EXPAND_SZ data.
 
-#include "os/win32/win32regkey.h"
+#include "base/win32/win32regkey.h"
 
 #include <shlwapi.h>
 

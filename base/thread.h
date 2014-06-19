@@ -40,7 +40,7 @@
 #include "base/messagequeue.h"
 
 #ifdef _WIN32
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #endif
 
 namespace talk_base {

@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2009, Google Inc.
+ * Copyright 2004--2005, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,39 +25,53 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "os/win32/win32socketinit.h"
+#ifndef TALK_BASE_WIN32WINDOW_H_
+#define TALK_BASE_WIN32WINDOW_H_
 
-#include "os/win32/win32.h"
+#ifdef WIN32
+
+#include "base/win32/win32.h"
 
 namespace talk_base {
 
-// Please don't remove this function.
-void EnsureWinsockInit() {
-  // The default implementation uses a global initializer, so WSAStartup
-  // happens at module load time.  Thus we don't need to do anything here.
-  // The hook is provided so that a client that statically links with
-  // libjingle can override it, to provide its own initialization.
-}
+///////////////////////////////////////////////////////////////////////////////
+// Win32Window
+///////////////////////////////////////////////////////////////////////////////
 
-#ifdef WIN32
-class WinsockInitializer {
+class Win32Window {
  public:
-  WinsockInitializer() {
-    WSADATA wsaData;
-    WORD wVersionRequested = MAKEWORD(1, 0);
-    err_ = WSAStartup(wVersionRequested, &wsaData);
-  }
-  ~WinsockInitializer() {
-    if (!err_)
-      WSACleanup();
-  }
-  int error() {
-    return err_;
-  }
+  Win32Window();
+  virtual ~Win32Window();
+
+  HWND handle() const { return wnd_; }
+
+  bool Create(HWND parent, const char* title, DWORD style, DWORD exstyle,
+              int x, int y, int cx, int cy);
+  void Destroy();
+
+  // Call this when your DLL unloads.
+  static void Shutdown();
+
+ protected:
+  virtual bool OnMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
+                         LRESULT& result);
+
+  virtual bool OnClose() { return true; }
+  virtual void OnNcDestroy() { }
+
  private:
-  int err_;
+  static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam,
+                                  LPARAM lParam);
+
+  HWND wnd_;
+  static HINSTANCE instance_;
+  static ATOM window_class_;
 };
-WinsockInitializer g_winsockinit;
-#endif
+
+///////////////////////////////////////////////////////////////////////////////
 
 }  // namespace talk_base
+
+#endif  // WIN32
+
+#endif  // TALK_BASE_WIN32WINDOW_H_

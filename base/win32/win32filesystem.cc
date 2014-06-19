@@ -25,9 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "os/win32/win32filesystem.h"
+#include "base/win32/win32filesystem.h"
 
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #include <shellapi.h>
 #include <shlobj.h>
 #include <tchar.h>

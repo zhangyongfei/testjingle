@@ -45,7 +45,7 @@
 
 #if defined(WIN32)
 #include "base/scoped_ptr.h"
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #elif defined(OSX)
 #include "base/macconversion.h"
 #elif defined(LINUX) || defined(ANDROID)

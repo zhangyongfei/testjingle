@@ -31,7 +31,7 @@
 #include "base/constructormagic.h"
 
 #ifdef WIN32
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #endif
 
 #ifdef POSIX

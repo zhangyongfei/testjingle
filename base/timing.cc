@@ -38,7 +38,7 @@
 #endif
 #elif defined(WIN32)
 #include <sys/timeb.h>
-#include "os/win32/win32.h"
+#include "base/win32/win32.h"
 #endif
 
 namespace talk_base {

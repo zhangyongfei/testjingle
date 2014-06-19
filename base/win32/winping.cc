@@ -25,7 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "os/win32/winping.h"
+#include "base/win32/winping.h"
 
 #include <assert.h>
 #include <Iphlpapi.h>

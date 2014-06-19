@@ -35,7 +35,7 @@
 typedef unsigned long Window;  // Avoid include <X11/Xlib.h>.
 #elif defined(WIN32)
 // We commonly include win32.h in base so just include it here.
-#include "os/win32/win32.h"  // Include HWND, HMONITOR.
+#include "base/win32/win32.h"  // Include HWND, HMONITOR.
 #elif defined(OSX)
 typedef unsigned int CGWindowID;
 typedef unsigned int CGDirectDisplayID;

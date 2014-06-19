@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2005, Google Inc.
+ * Copyright 2009, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,44 +25,39 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef POSIX
-#include <errno.h>
-#endif  // POSIX
+#include "base/win32/win32socketinit.h"
 
-#include <iostream>
+#include "base/win32/win32.h"
 
-#include "base/thread.h"
-#include "p2p/base/stunserver.h"
+namespace talk_base {
 
-using namespace cricket;
-
-int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    std::cerr << "usage: stunserver address" << std::endl;
-    return 1;
-  }
-
-  talk_base::SocketAddress server_addr;
-  if (!server_addr.FromString(argv[1])) {
-    std::cerr << "Unable to parse IP address: " << argv[1];
-    return 1;
-  }
-
-  talk_base::Thread *pthMain = talk_base::Thread::Current();
-
-  talk_base::AsyncUDPSocket* server_socket =
-      talk_base::AsyncUDPSocket::Create(pthMain->socketserver(), server_addr);
-  if (!server_socket) {
-    std::cerr << "Failed to create a UDP socket" << std::endl;
-    return 1;
-  }
-
-  StunServer* server = new StunServer(server_socket);
-
-  std::cout << "Listening at " << server_addr.ToString() << std::endl;
-
-  pthMain->Run();
-
-  delete server;
-  return 0;
+// Please don't remove this function.
+void EnsureWinsockInit() {
+  // The default implementation uses a global initializer, so WSAStartup
+  // happens at module load time.  Thus we don't need to do anything here.
+  // The hook is provided so that a client that statically links with
+  // libjingle can override it, to provide its own initialization.
 }
+
+#ifdef WIN32
+class WinsockInitializer {
+ public:
+  WinsockInitializer() {
+    WSADATA wsaData;
+    WORD wVersionRequested = MAKEWORD(1, 0);
+    err_ = WSAStartup(wVersionRequested, &wsaData);
+  }
+  ~WinsockInitializer() {
+    if (!err_)
+      WSACleanup();
+  }
+  int error() {
+    return err_;
+  }
+ private:
+  int err_;
+};
+WinsockInitializer g_winsockinit;
+#endif
+
+}  // namespace talk_base

@@ -35,7 +35,7 @@
 
 #if SSL_USE_SCHANNEL
 
-#include "os/win32/schanneladapter.h"
+#include "base/win32/schanneladapter.h"
 
 #elif SSL_USE_OPENSSL  // && !SSL_USE_SCHANNEL
 
